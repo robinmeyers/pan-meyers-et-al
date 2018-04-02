@@ -25,8 +25,6 @@ cache("rolland2014_interactome_y2h", {
 })
 
 
-### Panorama of ancient metazoan protein complexes, Wan et al 2015
-
 cache("wan2015_complexes_cofrac", {
     raw <- read_tsv("./data/raw/wan2015_table_S4.tsv",
                          col_types = 'cicc') %>%

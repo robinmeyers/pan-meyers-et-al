@@ -2,6 +2,7 @@
 cache("corum", {
     read_tsv("./data/raw/corum_human_core_complexes.tsv",
              col_types = "icc") %>%
+        distinct(Complex, Gene, .keep_all = T) %>%
         add_count(Complex)
 })
 

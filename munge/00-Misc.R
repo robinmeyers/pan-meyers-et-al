@@ -9,3 +9,11 @@ cache("ccle_rpkm", {
         as.matrix() %>%
         log2
 })
+
+
+cache("ccds", {
+    read_tsv("./data/raw/CCDS.current.txt",
+             col_types = cols(.default = col_character())) %>%
+        mutate(cds_from = as.integer(cds_from),
+               cds_to = as.integer(cds_to))
+})

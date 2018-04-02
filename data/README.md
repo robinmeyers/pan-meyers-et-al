@@ -15,7 +15,7 @@ wang_gene_effects.csv
 https://portals.broadinstitute.org/achilles/datasets/12/download/Achilles_v2.20.2_GeneSolutions.gct
 rnai_gene_effects.csv
 
-### CORUM core complexes, filtered humanfor 
+### CORUM core complexes, filtered for human
 http://mips.helmholtz-muenchen.de/corum/download/coreComplexes.txt.zip
 corum_human_core_complexes.tsv
 

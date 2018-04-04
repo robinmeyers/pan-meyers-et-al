@@ -1,8 +1,8 @@
 version: 0.8
 data_loading: FALSE
-cache_loading: FALSE
+cache_loading: TRUE
 recursive_loading: FALSE
-munging: FALSE
+munging: TRUE
 logging: FALSE
 load_libraries: TRUE
 libraries: devtools, magrittr, readr, stringr, stats, plyr, tibble, tidyr, dplyr,

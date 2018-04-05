@@ -1,5 +1,5 @@
 cache("coxpres_db", {
-    raw <- read_csv("./data/raw/coexpressdb.csv",
+    raw <- read_csv("./data/raw/coxpres_db.csv",
                     col_types = cols(X1 = col_character(),
                                      .default=col_double()))
 

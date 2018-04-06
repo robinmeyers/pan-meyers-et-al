@@ -14,6 +14,11 @@ cache("avana_dep_corr", {
         row_correlations(.parallel=do_parallel, use="pairwise")
 }, depends = c("avana_dep", "avana_analysis_genes"))
 
+cache("avana_2017_dep_corr", {
+    avana_2017_dep_corr <- avana_2017_dep[avana_2017_analysis_genes, ] %>%
+        row_correlations(.parallel=do_parallel, use="pairwise")
+}, depends = c("avana_2017_dep", "avana_2017_analysis_genes"))
+
 
 cache("rnai_dep_corr", {
     keep_genes <- rnai_analysis_genes %>%
@@ -41,6 +46,10 @@ cache("wang_dep_corr", {
 cache("avana_dep_rank", {
     edgeweight_symmetric_rank(avana_dep_corr)
 }, depends = "avana_dep_corr")
+
+cache("avana_2017_dep_rank", {
+    edgeweight_symmetric_rank(avana_2017_dep_corr)
+}, depends = "avana_2017_dep_corr")
 
 cache("rnai_dep_rank", {
     edgeweight_symmetric_rank(rnai_dep_corr)

@@ -71,6 +71,28 @@ cache("avana_analysis_genes", {
 }, depends = c("avana_dep", "ccle_rpkm"))
 
 
+
+cache("avana_2017_analysis_genes", {
+    globalSD <- sd(avana_2017_dep, na.rm=T)
+    most_dependent_line <- adply(avana_2017_dep, 1, function(x) {
+        xmin <- which.min(x)
+        data_frame(CellLine = names(xmin),
+                   Dep = x[xmin],
+                   SD = ((x[xmin] - mean(x, na.rm=T)) / globalSD))
+    }, .id="Gene")
+
+    xpr <- most_dependent_line %>%
+        select(CellLine, Gene) %>%
+        filter(CellLine %in% colnames(ccle_rpkm),
+               Gene %in% rownames(ccle_rpkm)) %>%
+        mutate(RPKM = ccle_rpkm[as.matrix(.[,c("Gene", "CellLine")])])
+
+    analysis_genes <- most_dependent_line %>%
+        left_join(xpr, by=c("Gene", "CellLine")) %>%
+        filter(Dep < -0.3 & (is.na(RPKM) | RPKM > 0))
+    return(as.character(analysis_genes$Gene))
+}, depends = c("avana_2017_dep", "ccle_rpkm"))
+
 cache("rnai_analysis_genes", {
     read_tsv("./data/raw/rnai_analysis_genes.tsv",
              col_types = cols(gene = col_character()))$gene

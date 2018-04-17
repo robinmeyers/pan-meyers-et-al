@@ -3,7 +3,9 @@ cache("huttlin2017_bioplex_ppi", {
     read_tsv("./data/raw/nature22366-s2.tsv",
              col_types = "----cc--n") %>%
         set_colnames(c("Gene.x", "Gene.y", "Confidence")) %>%
-        alphabetize_genes(Gene.x, Gene.y)
+        alphabetize_genes(Gene.x, Gene.y) %>%
+        distinct(Gene.x, Gene.y) %>%
+        filter(Gene.x != Gene.y)
 })
 
 cache("thul2017_subcellular_y2h", {
@@ -12,7 +14,9 @@ cache("thul2017_subcellular_y2h", {
         set_colnames(c("Gene.x", "Gene.y", "Localization")) %>%
         de_excelify_genes(Gene.x) %>%
         de_excelify_genes(Gene.y) %>%
-        alphabetize_genes(Gene.x, Gene.y)
+        alphabetize_genes(Gene.x, Gene.y) %>%
+        distinct(Gene.x, Gene.y) %>%
+        filter(Gene.x != Gene.y)
 })
 
 cache("rolland2014_interactome_y2h", {
@@ -21,7 +25,9 @@ cache("rolland2014_interactome_y2h", {
         set_colnames(c("Gene.x", "Gene.y")) %>%
         de_excelify_genes(Gene.x) %>%
         de_excelify_genes(Gene.y) %>%
-        alphabetize_genes(Gene.x, Gene.y)
+        alphabetize_genes(Gene.x, Gene.y) %>%
+        distinct(Gene.x, Gene.y) %>%
+        filter(Gene.x != Gene.y)
 })
 
 
@@ -34,12 +40,16 @@ cache("wan2015_complexes_cofrac", {
 
     inner_join(raw, raw, by="ComplexID") %>%
         filter(Gene.x < Gene.y) %>%
-        alphabetize_genes()
+        alphabetize_genes() %>%
+        distinct(Gene.x, Gene.y) %>%
+        filter(Gene.x != Gene.y)
 })
 
 
 cache("hein2015_interactome_qubic", {
     mann <- read_tsv("./data/raw/hein2015_mmc3.tsv") %>%
         select(Gene.x = bait.Gene.name, Gene.y = prey.Gene.name) %>%
-        alphabetize_genes()
+        alphabetize_genes() %>%
+        distinct(Gene.x, Gene.y) %>%
+        filter(Gene.x != Gene.y)
 })

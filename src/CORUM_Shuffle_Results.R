@@ -13,6 +13,10 @@ if (config$threads > 1) {
     do_parallel <- F
 }
 
+
+out_dir <- file.path("./output/empirical_shuffle", Sys.Date())
+dir.create(out_dir, recursive=T, showWarnings=F)
+
 load("./cache/corum_list.RData")
 
 load("./cache/avana_dep_corr.RData")
@@ -22,6 +26,7 @@ load("./cache/coxpres_db.RData")
 load("./cache/rnai_dep_corr.RData")
 load("./cache/wang_dep_corr.RData")
 
+
 corum_avana_shuffle <- readRDS("./data/interim/shuffle_corum_avana_10k.rds")
 corum_avana_2017_shuffle <- readRDS("./data/interim/shuffle_corum_avana_2017_10k.rds")
 corum_rnai_shuffle <- readRDS("./data/interim/shuffle_corum_rnai_10k.rds")
@@ -30,17 +35,14 @@ corum_wang_shuffle <- readRDS("./data/interim/shuffle_corum_wang_10k.rds")
 corum_coxpr_shuffle <- readRDS("./data/interim/shuffle_corum_coxpr_10k.rds")
 
 
-out_dir <- file.path("./output/empirical_shuffle", Sys.Date())
-dir.create(out_dir, recursive=T, showWarnings=F)
 
 
 corum_avana_dat <- prepare_dataset(avana_dep_corr, corum_list)
 corum_avana_2017_dat <- prepare_dataset(avana_2017_dep_corr, corum_list)
 corum_rnai_dat <- prepare_dataset(rnai_dep_corr, corum_list)
-corum_gecko_dat <- prepare_dataset(gecko_corr, corum_list)
-corum_wang_dat <- prepare_dataset(wang_corr, corum_list)
+corum_gecko_dat <- prepare_dataset(gecko_dep_corr, corum_list)
+corum_wang_dat <- prepare_dataset(wang_dep_corr, corum_list)
 corum_coxpr_dat <- prepare_dataset(coxpres_db, corum_list)
-
 
 rank_thresholds <- 2^(0:13)
 
@@ -54,6 +56,7 @@ corum_avana_true %>%
     ggsave(file.path(out_dir, "edgedens_true_corum_avana.pdf"),
            width=6, height=4)
 
+
 corum_avana_2017_true <-
     run_int_ext_true(corum_avana_2017_dat$edgelist,
                      corum_avana_2017_dat$genesets,
@@ -63,6 +66,7 @@ corum_avana_2017_true %>%
     edgedens_true_gg(title="CORUM mapped onto Avana2017 Similarity Network") +
     ggsave(file.path(out_dir, "edgedens_true_corum_avana_2017.pdf"),
            width=6, height=4)
+
 
 corum_rnai_true <-
     run_int_ext_true(corum_rnai_dat$edgelist,
@@ -81,7 +85,7 @@ corum_coxpr_true <-
                      rank_thresholds)
 
 corum_coxpr_true %>%
-    edgedens_true_gg(title="CORUM mapped onto CoexpressDB Similarity Network") +
+    edgedens_true_gg(title="CORUM mapped onto COXPRESdb Similarity Network") +
     ggsave(file.path(out_dir, "edgedens_true_corum_coexpressdb.pdf"),
            width=6, height=4)
 
@@ -108,21 +112,21 @@ corum_wang_true %>%
 
 corum_true <- bind_rows(
     corum_avana_true %>% mutate(Network="Avana"),
-    corum_avana_2017_true %>% mutate(Network="Avana2017"),
+    corum_avana_2017_true %>% mutate(Network="Avana 2017"),
     corum_rnai_true %>% mutate(Network="RNAi"),
     corum_coxpr_true %>% mutate(Network="COXPRESdb"),
-    corum_gecko_true %>% mutate(Network="Gecko"),
-    corum_wang_true %>% mutate(Network="Wang")
+    corum_gecko_true %>% mutate(Network="GeCKOv2"),
+    corum_wang_true %>% mutate(Network="Wang 2017")
 )
 
 
 corum_shuffle <- bind_rows(
     corum_avana_shuffle %>% mutate(Network="Avana"),
-    corum_avana_2017_shuffle %>% mutate(Network="Avana2017"),
+    corum_avana_2017_shuffle %>% mutate(Network="Avana 2017"),
     corum_rnai_shuffle %>% mutate(Network="RNAi"),
     corum_coxpr_shuffle %>% mutate(Network="COXPRESdb"),
-    corum_gecko_shuffle %>% mutate(Network="Gecko"),
-    corum_wang_shuffle %>% mutate(Network="Wang")
+    corum_gecko_shuffle %>% mutate(Network="GeCKOv2"),
+    corum_wang_shuffle %>% mutate(Network="Wang 2017")
 )
 
 
@@ -157,7 +161,7 @@ ggplot(rank_fdrs, aes(FirstRank, Recall, color=Network)) +
                    summarize(RecallFinal = sum(BestFDR<0.05) /
                                  length(corum_list))) +
     geom_line() +
-    scale_y_continuous(limits=c(0, 0.4), expand=c(0, 0)) +
+    scale_y_continuous(limits=c(0, 0.5), expand=c(0, 0)) +
     scale_x_continuous(trans="log2", breaks=rank_thresholds) +
     labs(x="Rank Threshold", y="Recall of Complexes",
          title="CORUM mapped onto Similarity Networks") +

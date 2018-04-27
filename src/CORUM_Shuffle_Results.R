@@ -157,7 +157,7 @@ write_tsv(rank_fdrs, file.path(out_dir, "corum_shuffle_10k_results.tsv"))
 rank_fdrs %>%
     filter(BestFDR < 0.05) %>%
     select(Network, Geneset) %>%
-    write_tsv(file.path(out_dir, "corum_shuffle_10k_sig_genesets.tsv"))
+    write_tsv(file.path("data/interim/corum_shuffle_10k_sig_genesets.tsv"))
 
 
 

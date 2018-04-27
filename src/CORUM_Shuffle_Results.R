@@ -154,6 +154,12 @@ rank_fdrs <- empirical_shuffle_results %>%
 
 write_tsv(rank_fdrs, file.path(out_dir, "corum_shuffle_10k_results.tsv"))
 
+rank_fdrs %>%
+    filter(BestFDR < 0.05) %>%
+    select(Network, Geneset) %>%
+    write_tsv(file.path(out_dir, "corum_shuffle_10k_sig_genesets.tsv"))
+
+
 
 ggplot(rank_fdrs, aes(FirstRank, Recall, color=Network)) +
     geom_hline(aes(yintercept=RecallFinal, color=Network), linetype=2,
@@ -185,58 +191,4 @@ rank_fdrs %>%
          title="CORUM Precision-Recall in Similarity Networks") +
     ggsave(file.path(out_dir, "precision_recall_corum.pdf"),
            width=6, height=4)
-
-
-empirical_shuffle_results %>%
-    filter(Network != "Gecko") %>%
-    group_by(Network, Geneset) %>%
-    arrange(Rank) %>%
-    mutate(Right = c(FDR[2:n()], NA),
-           Left = c(NA, FDR[1:(n()-1)])) %>%
-    filter(FDR < 0.05) %>%
-    select(Network, Geneset, Rank, FDR, Left, Right) %>%
-    gather(Group, Sig, Left, FDR, Right) %>%
-    mutate(Group = factor(Group, levels=c("Left", "FDR", "Right"), ordered=T)) %>%
-    ggplot(aes(x=as.factor(Rank), y=-log10(Sig), color=Group)) +
-    geom_hline(yintercept=-log10(0.05)) +
-    geom_boxplot( position=position_dodge(width=0.9)) +
-    geom_text(aes(x=as.factor(Rank), label=NSig),
-              y=max(-log10(empirical_shuffle_results$FDR), na.rm=T),
-              vjust=-0.05,
-              data=empirical_shuffle_results %>%
-                  filter(Network != "Gecko") %>%
-                  group_by(Network, Rank) %>%
-                  summarise(NSig = sum(FDR < 0.05, na.rm=T)),
-              inherit.aes=F) +
-    facet_wrap(~ Network, ncol=2, scales="free") +
-    scale_color_manual(values=brewer_pal(palette="Set2")(2) %>%
-                           set_names(c("Left", "Right")) %>%
-                           c(FDR="Black")) +
-    theme(strip.background=element_blank()) +
-    ggsave(file.path(out_dir, "sig_levels_across_ranks.pdf"),
-           width=10, height=10)
-
-
-
-near_misses <-
-    empirical_shuffle_results %>%
-    group_by(Network, Geneset) %>%
-    arrange(Rank) %>%
-    summarise(BestSig = min(FDR, na.rm=T),
-              RankOfBestSig = Rank[FDR == BestSig][1],
-              NearestMiss = min(FDR[FDR > 0.05], na.rm=T),
-              RankOfNearestMiss = Rank[FDR == NearestMiss][1])
-
-near_misses %>% filter(!is.infinite(BestSig),
-                       !is.infinite(NearestMiss)) %>%
-    ggplot(aes(-log10(NearestMiss), -log10(BestSig),
-               color=1/RankOfNearestMiss)) +
-    facet_wrap(~ Network, scales="free", ncol=3) +
-    geom_hline(yintercept=-log10(0.05)) + geom_vline(xintercept=-log10(0.05)) +
-    geom_point(position=position_jitter(width=0.05,
-                                        height=0.05),
-               show.legend=F) +
-    scale_color_continuous(trans="log2") +
-    ggsave(file.path(out_dir, "near_fdr_misses_corum.pdf"),
-           width=5, height=5)
 

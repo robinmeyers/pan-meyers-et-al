@@ -24,10 +24,10 @@ calculate_graph_thresholds <- function(mat, geneset_list, do_parallel = FALSE) {
         filter(Gene.x < Gene.y) %>%
         mutate(Edgeweight = 1/Rank)
 
-    # remove complexes that have less than 3 members in the screening dataset
+    # remove complexes that have fewer than 2 members in the screening dataset
     genesets_to_test <- llply(geneset_list, function(genes) {
         screened <- genes[genes %in% rownames(mat)] %>% unique()
-        if (length(screened) < 3)
+        if (length(screened) < 2)
             return(NA)
         else
             return(screened)

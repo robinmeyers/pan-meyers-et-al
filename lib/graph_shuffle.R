@@ -2,6 +2,10 @@
 
 prepare_dataset <- function(corr_mat, full_genesets) {
 
+    if (is.null(names(full_genesets))) {
+        names(full_genesets) <- 1:length(full_genesets)
+    }
+
     genesets <- llply(full_genesets, function(s) {
         intersect(s, rownames(corr_mat))
     })

@@ -29,6 +29,7 @@ corum_gecko_dat <- prepare_dataset(gecko_corr, corum_list)
 corum_wang_dat <- prepare_dataset(wang_corr, corum_list)
 corum_coxpr_dat <- prepare_dataset(coxpres_db, corum_list)
 
+
 ntrials <- 10000
 niter <- 10
 epoch <- 1000
@@ -36,7 +37,9 @@ epoch <- 1000
 rank_thresholds <- 2^(8:0)
 
 corum_shuffle_wrapper <- function(shuffle_file, corr_dat) {
+
     if (!file.exists(shuffle_file)) {
+        cat("Running network shuffle and saving to", shuffle_file, "\n")
         shuffle_result <-
             run_int_ext_shuffle(corr_dat$edgelist,
                                 corr_dat$genesets,
@@ -44,14 +47,13 @@ corum_shuffle_wrapper <- function(shuffle_file, corr_dat) {
                                 ntrials=ntrials, niter=niter, epoch=epoch,
                                 do_parallel=do_parallel)
 
-        saveRDS(shuffle_result,
-                shuffle_file)
+        saveRDS(shuffle_result, shuffle_file)
     } else {
+        cat("Found", shuffle_file, "... Not re-running\n")
         shuffle_result <- readRDS(shuffle_file)
     }
     return(shuffle_result)
 }
-
 
 corum_avana_shuffle <-
     corum_shuffle_wrapper("./data/interim/shuffle_corum_avana_10k.rds",
@@ -63,17 +65,16 @@ corum_avana_2017_shuffle <-
 
 corum_rnai_shuffle <-
     corum_shuffle_wrapper("./data/interim/shuffle_corum_rnai_10k.rds",
-                          rnai_dep_corr)
+                          corum_rnai_dat)
 
 corum_gecko_shuffle <-
     corum_shuffle_wrapper("./data/interim/shuffle_corum_gecko_10k.rds",
-                          gecko_dep_corr)
+                          corum_gecko_dat)
 
 corum_wang_shuffle <-
     corum_shuffle_wrapper("./data/interim/shuffle_corum_wang_10k.rds",
-                          wang_dep_corr)
+                          corum_wang_dat)
 
 corum_coxpr_shuffle <-
     corum_shuffle_wrapper("./data/interim/shuffle_corum_coxpr_10k.rds",
-                          coxpres_db)
-
+                          corum_coxpr_dat)

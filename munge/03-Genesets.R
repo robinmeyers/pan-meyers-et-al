@@ -20,7 +20,8 @@ cache("corum_list", {
 
 cache("humap_list", {
     scan("./data/raw/humap_clusters.txt", what="", sep="\n")  %>%
-        str_split(pattern = "\t")
+        str_split(pattern = "\t") %>%
+        set_names(1:length(.))
 })
 
 cache("baf_genes", {

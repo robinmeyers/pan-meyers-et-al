@@ -30,7 +30,7 @@ humap_pairs <- list_to_pairs(humap_list)
 
 genepair_lists <- list(CORUM = corum_pairs,
                        hu.MAP = humap_pairs,
-                       Y2H = rolland2014_interactome_y2h,
+                       HuRI = rolland2014_interactome_y2h,
                        Subcell = thul2017_subcellular_y2h,
                        Mann = hein2015_interactome_qubic,
                        BioPlex2 = huttlin2017_bioplex_ppi,

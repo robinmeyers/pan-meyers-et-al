@@ -44,6 +44,8 @@ list_to_pairs <- function(complex_list, unique_pairs=T) {
 
     if (unique_pairs) {
         pairs_df <- pairs_df %>% distinct(Gene.x, Gene.y)
+    } else {
+        pairs_df <- pairs_df %>% distinct()
     }
 
     return(pairs_df)

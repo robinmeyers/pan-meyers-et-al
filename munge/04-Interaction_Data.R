@@ -39,7 +39,6 @@ cache("wan2015_complexes_cofrac", {
         unnest()
 
     inner_join(raw, raw, by="ComplexID") %>%
-        filter(Gene.x < Gene.y) %>%
         alphabetize_genes() %>%
         distinct(Gene.x, Gene.y) %>%
         filter(Gene.x != Gene.y)
@@ -52,4 +51,15 @@ cache("hein2015_interactome_qubic", {
         alphabetize_genes() %>%
         distinct(Gene.x, Gene.y) %>%
         filter(Gene.x != Gene.y)
+})
+
+cache("pdb_surfaces", {
+    pdb_surfaces <- read_tsv("./data/raw/human_ixns_pdb.txt",
+                             col_names = c("Gene.x",
+                                           "Gene.y",
+                                           "Interaction",
+                                           "PDB1",
+                                           "Surface1",
+                                           "PDB2",
+                                           "Surface2"))
 })

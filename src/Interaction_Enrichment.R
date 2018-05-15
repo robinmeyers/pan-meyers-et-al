@@ -1,5 +1,5 @@
 library(ProjectTemplate)
-load.project()
+load.project(override.config = list(cache_loading=F, munging=F))
 
 if (config$threads > 1) {
     library(doMC)
@@ -9,23 +9,24 @@ if (config$threads > 1) {
     do_parallel <- F
 }
 
-plot_dir <- file.path("./graphs/interaction_enrichment", Sys.Date())
+plot_dir <- file.path("./output/interaction_enrichment", Sys.Date())
 dir.create(plot_dir, recursive = T, showWarnings = F)
 
+load("./cache/corum_list.RData")
+load("./cache/humap_list.RData")
+load("./cache/rolland2014_interactome_y2h.RData")
+load("./cache/thul2017_subcellular_y2h.RData")
+load("./cache/hein2015_interactome_qubic.RData")
+load("./cache/huttlin2017_bioplex_ppi.RData")
+load("./cache/wan2015_complexes_cofrac.RData")
 
+load("./cache/avana_dep_corr.RData")
+load("./cache/avana_2017_dep_corr.RData")
+load("./cache/rnai_dep_corr.RData")
 
-corum_pairs <- data_frame(Complex = names(corum_list),
-                          Gene = corum_list) %>%
-    unnest(Gene) %>%
-    inner_join(., ., by="Complex") %>%
-    filter(Gene.x < Gene.y)
+corum_pairs <- list_to_pairs(corum_list)
 
-humap_pairs <- data_frame(Complex = seq_along(humap_list),
-                          Gene = humap_list) %>%
-    unnest(Gene) %>%
-    inner_join(., ., by="Complex") %>%
-    filter(Gene.x < Gene.y)
-
+humap_pairs <- list_to_pairs(humap_list)
 
 genepair_lists <- list(CORUM = corum_pairs,
                        hu.MAP = humap_pairs,

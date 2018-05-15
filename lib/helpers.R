@@ -32,3 +32,20 @@ de_excelify_genes <- function(df, x) {
                !! quo_name(x) := str_replace(!! x, "(\\d+)-Mar", "MARCH\\1"))
 
 }
+
+list_to_pairs <- function(complex_list, unique_pairs=T) {
+
+    pairs_df <- data_frame(Complex = names(complex_list),
+               Gene = complex_list) %>%
+        unnest(Gene) %>%
+        inner_join(., ., by="Complex") %>%
+        alphabetize_genes() %>%
+        filter(Gene.x != Gene.y)
+
+    if (unique_pairs) {
+        pairs_df <- pairs_df %>% distinct(Gene.x, Gene.y)
+    }
+
+    return(pairs_df)
+}
+

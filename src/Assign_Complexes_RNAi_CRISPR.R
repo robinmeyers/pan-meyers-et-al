@@ -116,6 +116,6 @@ corum_rnai_edges <- dataset_assignment %>%
     filter(Rank <= Threshold)
 
 corum_crispr_edges %>% select(Gene.x, Gene.y) %>% distinct() %>%
-    write_tsv(file.path(out_dir, "cytoscape_corum_crispr_nets.txt"))
+    write_tsv(file.path(out_dir, "cytoscape_corum_crispr_nets.tsv"))
 corum_rnai_edges %>% select(Gene.x, Gene.y) %>% distinct() %>%
-    write_tsv(file.path(out_dir, "cytoscape_corum_rnai_nets.txt"))
+    write_tsv(file.path(out_dir, "cytoscape_corum_rnai_nets.tsv"))

@@ -13,6 +13,6 @@ cache("coxpres_db", {
         as.matrix() %>%
         set_rownames(entrez_to_hugo[rownames(.)]) %>%
         set_colnames(entrez_to_hugo[colnames(.)]) %>%
-        magrittr::extract(rownames(.) %in% c(rnai_analysis_genes, avana_analysis_genes),
-                          colnames(.) %in% c(rnai_analysis_genes, avana_analysis_genes))
-}, depends = "ccds")
+        magrittr::extract(rownames(.) %in% c(rnai_analysis_genes, avana_2017_analysis_genes),
+                          colnames(.) %in% c(rnai_analysis_genes, avana_2017_analysis_genes))
+}, depends = c("ccds", "rnai_analysis_genes", "avana_2017_analysis_genes"))

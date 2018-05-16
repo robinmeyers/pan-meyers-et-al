@@ -4,7 +4,6 @@ library(ggridges)
 library(ProjectTemplate)
 load.project(override.config = list(munging=F, cache_loading=F))
 
-
 if (config$threads > 1) {
     library(doMC)
     registerDoMC(cores=config$threads)
@@ -18,6 +17,7 @@ out_dir <- file.path("./output/empirical_shuffle", Sys.Date())
 dir.create(out_dir, recursive=T, showWarnings=F)
 
 load("./cache/humap_list.RData")
+load("./cache/corum_list.RData")
 # load("./cache/avana_dep_corr.RData")
 load("./cache/avana_2017_dep_corr.RData")
 # load("./cache/rnai_dep_corr.RData")
@@ -67,8 +67,6 @@ humap_avana_2017_true %>%
 #            width=6, height=4)
 
 
-
-
 humap_true <- bind_rows(
     # humap_avana_true %>% mutate(Network="Avana"),
     humap_avana_2017_true %>% mutate(Network="Avana 2017")
@@ -81,7 +79,6 @@ humap_shuffle <- bind_rows(
     humap_avana_2017_shuffle %>% mutate(Network="Avana 2017")
     # humap_rnai_shuffle %>% mutate(Network="RNAi"),
 )
-
 
 
 empirical_shuffle_results <-
@@ -105,13 +102,12 @@ rank_fdrs <- empirical_shuffle_results %>%
     arrange(FirstRank) %>%
     mutate(Recall = cumsum(BestFDR < 0.05)/length(humap_list))
 
-write_tsv(rank_fdrs, file.path(out_dir, "humap_shuffle_10k_results.tsv"))
+write_tsv(rank_fdrs, file.path("data/interim/humap_shuffle_10k_results.tsv"))
 
 rank_fdrs %>%
     filter(BestFDR < 0.05) %>%
     select(Network, Geneset) %>%
     write_tsv(file.path("data/interim/humap_shuffle_10k_sig_genesets.tsv"))
-
 
 
 ggplot(rank_fdrs, aes(FirstRank, Recall, color=Network)) +
@@ -144,4 +140,40 @@ rank_fdrs %>%
          title="hu.MAP Precision-Recall in Similarity Networks") +
     ggsave(file.path(out_dir, "precision_recall_humap.pdf"),
            width=6, height=4)
+
+genes_in_corum <- humap_list %>%
+    data_frame(Geneset = names(.),
+               Gene = .) %>%
+    unnest(Gene) %>%
+    mutate(In_CORUM = Gene %in% unlist(corum_list)) %>%
+    group_by(Geneset) %>%
+    summarise(Percent_In_CORUM = sum(In_CORUM)/n())
+
+rank_fdrs_genesets <- rank_fdrs %>%
+    group_by(Geneset) %>%
+    summarise(BestFDR = min(BestFDR),
+              FirstRank = min(FirstRank))
+
+humap_grouped_rank_fdrs <-
+    bind_rows(rank_fdrs_genesets %>%
+                  left_join(genes_in_corum) %>%
+                  mutate(Group = ifelse(Percent_In_CORUM > 0.8,
+                                        "Majority_CORUM", "Not_CORUM")),
+              rank_fdrs_genesets %>%
+                  mutate(Group = "Everything")) %>%
+    group_by(Group) %>%
+    arrange(FirstRank) %>%
+    mutate(Recall = cumsum(BestFDR < 0.05)/n())
+
+humap_grouped_rank_fdrs %>%
+    ggplot(aes(FirstRank, Recall, color = Group)) +
+    geom_line() +
+    scale_y_continuous(limits = c(0,0.4), expand=c(0, 0)) +
+    scale_x_continuous(trans="log2", breaks=2^(0:6)) +
+    labs(x="Rank Threshold", y="Recall of Complexes") +
+    theme(legend.position=c(0,1),
+          legend.justification=c(0,1),
+          legend.title=element_blank()) +
+    ggsave(file.path(out_dir, "rank_recall_humap_split.pdf"),
+           width=5, height=4)
 

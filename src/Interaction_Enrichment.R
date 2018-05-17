@@ -9,8 +9,8 @@ if (config$threads > 1) {
     do_parallel <- F
 }
 
-plot_dir <- file.path("./output/interaction_enrichment", Sys.Date())
-dir.create(plot_dir, recursive = T, showWarnings = F)
+out_dir <- file.path("./output/interaction_enrichment", Sys.Date())
+dir.create(out_dir, recursive = T, showWarnings = F)
 
 load("./cache/corum_list.RData")
 load("./cache/humap_list.RData")
@@ -34,7 +34,7 @@ genepair_lists <- list(CORUM = corum_pairs,
                        Subcell = thul2017_subcellular_y2h,
                        Mann = hein2015_interactome_qubic,
                        BioPlex2 = huttlin2017_bioplex_ppi,
-                       Marcottte = wan2015_complexes_cofrac)
+                       Marcotte = wan2015_complexes_cofrac)
 
 rnai_corr_interaction_enrichment <-
     ldply(genepair_lists, function(gp) {
@@ -107,3 +107,57 @@ avana2017_gg +
     ggsave(file.path(plot_dir, "avana2017_interaction_enrichment.pdf"),
            width=6, height=4)
 
+
+crispr_df <- avana_2017_dep_corr %>%
+    mat.to.df("Gene.x", "Gene.y", "Corr") %>%
+    filter(Gene.x < Gene.y)
+rnai_df <- rnai_dep_corr %>%
+    mat.to.df("Gene.x", "Gene.y", "Corr") %>%
+    filter(Gene.x < Gene.y)
+
+interaction_stats_crispr <- ldply(genepair_lists, function(interaction_pairs) {
+    interaction_pairs %>%
+        mutate(Interaction = TRUE) %>%
+        right_join(crispr_df) %>%
+        mutate(Interaction = !is.na(Interaction)) %>%
+        group_by(Interaction) %>%
+        summarise(Stat = list(c("Min", "Lower", "Med", "Upper", "Max")),
+                  Value = list(boxplot.stats(Corr)$stats)) %>%
+        unnest
+}, .id = "Dataset", .parallel = do_parallel)
+
+
+interaction_stats_rnai <- ldply(genepair_lists, function(interaction_pairs) {
+    interaction_pairs %>%
+        mutate(Interaction = TRUE) %>%
+        right_join(rnai_df) %>%
+        mutate(Interaction = !is.na(Interaction)) %>%
+        group_by(Interaction) %>%
+        summarise(Stat = list(c("Min", "Lower", "Med", "Upper", "Max")),
+                  Value = list(boxplot.stats(Corr)$stats)) %>%
+        unnest
+}, .id = "Dataset", .parallel = do_parallel)
+
+
+interaction_stats_crispr %>%
+    spread(Stat, Value) %>%
+    mutate(Dataset = factor(Dataset, levels = c("CORUM", "Marcotte", "hu.MAP", "Mann", "HuRI", "Subcell", "BioPlex2"))) %>%
+    ggplot(aes(Dataset, fill = Interaction,
+               ymin=Min, lower=Lower, middle=Med, upper=Upper, ymax=Max)) +
+    geom_boxplot(stat="identity", outlier.shape = NA) +
+    labs(y = "Fitness correlation") +
+    theme(axis.title.x = element_blank()) +
+    ggsave(file.path(out_dir, "crispr_interaction_boxplot.pdf"),
+           width = 8, height = 6)
+
+
+interaction_stats_rnai %>%
+    spread(Stat, Value) %>%
+    mutate(Dataset = factor(Dataset, levels = c("CORUM", "Marcotte", "hu.MAP", "Mann", "HuRI", "Subcell", "BioPlex2"))) %>%
+    ggplot(aes(Dataset, fill = Interaction,
+               ymin=Min, lower=Lower, middle=Med, upper=Upper, ymax=Max)) +
+    geom_boxplot(stat="identity", outlier.shape = NA) +
+    labs(y = "Fitness correlation") +
+    theme(axis.title.x = element_blank()) +
+    ggsave(file.path(out_dir, "rnai_interaction_boxplot.pdf"),
+           width = 8, height = 6)
